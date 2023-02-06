@@ -1,8 +1,10 @@
 import { initializeApp } from 'firebase/app'
 import { Auth, getAuth, GoogleAuthProvider, signInWithPopup, signOut, User, UserCredential } from 'firebase/auth'
-import { FirebaseStorage, getStorage } from 'firebase/storage'
+import { FirebaseStorage, getStorage, ref, uploadBytes, uploadBytesResumable, UploadTask } from 'firebase/storage'
 import { collection, CollectionReference, doc, Firestore, getFirestore, setDoc } from 'firebase/firestore'
 import config from './config.json'
+import { uuidv4 } from '@firebase/util'
+import { customAlphabet } from 'nanoid'
 
 export type FileData = {
     id: string,
@@ -47,6 +49,26 @@ class FirebaseService
             uid: user.uid,
             displayName: user.displayName
         })
+    }
+
+    async addFile(originalFilename: string, uniqueFilename: string): Promise<void> {
+        const id = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 8)().toUpperCase();
+
+        await setDoc(doc(this.fileCollection, id), {
+            id: id,
+            originalFilename: originalFilename,
+            uniqueFilename: uniqueFilename,
+            userId: this.auth.currentUser ? this.auth.currentUser.uid : null
+        })
+    }
+
+    getUniqueFilename(file: File): string{
+        return `${uuidv4()}.${file.name.split('.').pop()}`;
+    }
+
+    uploadFile(file: File, filename: string): UploadTask {
+        const storageRef = ref(this.storage, filename);
+        return uploadBytesResumable(storageRef, file);
     }
 
     async signInWithGoogle(): Promise<UserCredential> {
