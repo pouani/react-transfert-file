@@ -16,11 +16,11 @@ function Navbar() {
             <Nav className='me-auto'>
                 <Link to='/' className='nav-link'>Accueil</Link>
                 <Link to='/files' className='nav-link'>Fichiers</Link>
-                <Link to='/sent' className='nav-link'>Fichiers envoyés</Link>
+                {currentUser && <Link to='/sent' className='nav-link'>Fichiers envoyés</Link>}
             </Nav>
             <div className={isLoaded ? '' : 'd-none'}>
                   {
-                  currentUser ? <button className="btn border border-danger">se déconnecter</button> 
+                  currentUser ? <button onClick={async () => await FirebaseService.signOut()} className="btn border border-danger">se déconnecter</button> 
                   : <button className="btn btn-primary" onClick={async () => await FirebaseService.signInWithGoogle()}>se connecter</button>
                   }
               </div>

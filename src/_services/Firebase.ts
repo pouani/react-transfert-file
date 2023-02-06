@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { Auth, getAuth, GoogleAuthProvider, signInWithPopup, User, UserCredential } from 'firebase/auth'
+import { Auth, getAuth, GoogleAuthProvider, signInWithPopup, signOut, User, UserCredential } from 'firebase/auth'
 import { FirebaseStorage, getStorage } from 'firebase/storage'
 import { collection, CollectionReference, doc, Firestore, getFirestore, setDoc } from 'firebase/firestore'
 import config from './config.json'
@@ -56,6 +56,10 @@ class FirebaseService
         } catch (error) {
             return null;
         }
+    }
+
+    async signOut(): Promise<void> {
+        await signOut(this.auth);
     }
 }
 

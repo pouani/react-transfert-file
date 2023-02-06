@@ -18,7 +18,7 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Navbar />
-        <Container>
+        <Container className='mt-5'>
           <Col xl={{span:6, offset:3}}>
             <Routes>
               <Route path='/' element={<Suspense><Home /></Suspense>} />
