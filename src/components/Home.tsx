@@ -7,6 +7,7 @@ function Home() {
   const MAX_FILE_SIZE_IN_MB = 10;
 
   const [file, setFile] = useState<File>()
+  const [fileInputRef, setFileInputRef] = useState<HTMLInputElement>(null) // [null, HTMLInputElement
 
   const [uploadProgress, setUploadProgress] = useState<number>(0) // [0, 100]
 
@@ -46,9 +47,18 @@ function Home() {
       setUploadProgress(Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100))
     })
 
-    await FirebaseService.addFile(file.name, uniqueFilename)
+    const id = await FirebaseService.addFile(file.name, uniqueFilename)
 
-    setFile(null)
+    setFile(null);
+
+    fileInputRef.value = null;
+
+    Swal.fire({
+      footer: `<a href="/files/${id}">${id}</a>`,
+      icon: 'success',
+      text: 'Le fichier a été envoyé avec succès',
+      title: 'Succès',
+    });
   }
 
   return (
@@ -56,7 +66,7 @@ function Home() {
       <Card.Header>Envoyer un fichier</Card.Header>
       <Card.Body>
         <Form validated={validated} onSubmit={handleSubmit}>
-          <Form.Control className="mb-3" type="file" onChange={handleFileChange} required></Form.Control>
+          <Form.Control className="mb-3" type="file" ref={setFileInputRef} onChange={handleFileChange} required></Form.Control>
           <ProgressBar animated className='mb-3' now={uploadProgress} label={`${uploadProgress}%`} />
           <Button className='w-100' type="submit">Envoyer</Button>
         </Form>

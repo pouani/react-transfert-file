@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app'
 import { Auth, getAuth, GoogleAuthProvider, signInWithPopup, signOut, User, UserCredential } from 'firebase/auth'
 import { FirebaseStorage, getStorage, ref, uploadBytes, uploadBytesResumable, UploadTask } from 'firebase/storage'
-import { collection, CollectionReference, doc, Firestore, getFirestore, setDoc } from 'firebase/firestore'
+import { collection, CollectionReference, doc, Firestore, getDoc, getDocs, getFirestore, query, setDoc, where } from 'firebase/firestore'
 import config from './config.json'
 import { uuidv4 } from '@firebase/util'
 import { customAlphabet } from 'nanoid'
@@ -51,7 +51,7 @@ class FirebaseService
         })
     }
 
-    async addFile(originalFilename: string, uniqueFilename: string): Promise<void> {
+    async addFile(originalFilename: string, uniqueFilename: string): Promise<string> {
         const id = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 8)().toUpperCase();
 
         await setDoc(doc(this.fileCollection, id), {
@@ -60,10 +60,35 @@ class FirebaseService
             uniqueFilename: uniqueFilename,
             userId: this.auth.currentUser ? this.auth.currentUser.uid : null
         })
+
+        return id;
     }
 
     getUniqueFilename(file: File): string{
         return `${uuidv4()}.${file.name.split('.').pop()}`;
+    }
+
+    async getFilesSendByCurrentUser(): Promise<FileData[]> {
+        const files: FileData[] = [];
+
+        const q = query(this.fileCollection, where('userId', '==', this.auth.currentUser.uid));
+        const querySnapshot = await getDocs(q);
+        
+        querySnapshot.docs.forEach(doc => {
+            files.push(doc.data());
+        });
+
+        return files;
+    }
+
+    async getSingleFile(id: string): Promise<FileData> {
+        const fileData = await getDoc(doc(this.fileCollection, id));
+        return fileData.data();
+    }
+
+    async getSingleUser(id: string): Promise<UserData> {
+        const userData = await getDoc(doc(this.usersCollection, id));
+        return userData.data();
     }
 
     uploadFile(file: File, filename: string): UploadTask {
